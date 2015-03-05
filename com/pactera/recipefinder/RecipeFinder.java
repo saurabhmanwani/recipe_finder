@@ -1,6 +1,7 @@
 package com.pactera.recipefinder;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -23,8 +25,16 @@ public class RecipeFinder {
 	
 	public static void main(String[] args) {
 		
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter recipe json file path");
+		String jsonFile = sc.next();
+		System.out.println("Enter fridge items csv file path");
+		String csvFile = sc.next();
+		
+		sc.close();
+		
 		RecipeFinder recipeFinder = new RecipeFinder();
-		recipeFinder.startRecipeFinderExecution();
+		recipeFinder.startRecipeFinderExecution(jsonFile, csvFile);		
 	}
 	
 	/*
@@ -32,18 +42,15 @@ public class RecipeFinder {
 	 * 
 	 * 
 	 */
-	private void startRecipeFinderExecution() {
-		
-		String recipe = "[{'name': 'grilled cheese on toast','ingredients':[{ 'item':'bread', 'amount':'2', 'unit':'slices'},{ 'item':'cheese', 'amount':'2', 'unit':'slices'}]},{'name': 'salad sandwich','ingredients': [{ 'item':'bread', 'amount':'2', 'unit':'slices'},{ 'item':'mixed salad', 'amount':'100', 'unit':'grams'}]}]";
-	
+	private void startRecipeFinderExecution(String jsonFile, String csvFile) {
 		
 		// parse json file
-	//	String jsonFile = "";
-	//	String recipe = parseRecipeJSONFile(jsonFile);
+	//	jsonFile = "/Users/saurabhmanwani/Desktop/recipeJson.txt";
+		String recipe = parseRecipeJSONFile(jsonFile);
 		JSONArray recipeArray =  new JSONArray(recipe);
 		
 		// parse csv file
-		String csvFile = "/Users/saurabhmanwani/Desktop/fridgeItemsCsv.csv";
+	//	csvFile = "/Users/saurabhmanwani/Desktop/fridgeItemsCsv.csv";
 		Map<String,List<Object>> fridgeItems = parseFridgeItemsCSVFile(csvFile);
 		
 		// run recipe finder
@@ -56,23 +63,26 @@ public class RecipeFinder {
 	 * 
 	 */
 	private String parseRecipeJSONFile(String jsonFile) {
-		
-		BufferedReader br = null;
-		char lineCharacter = ' ';
+
 		StringBuilder jsonFileString = new StringBuilder();
-		try {			 
-			br = new BufferedReader(new FileReader(jsonFile));
-			while ((lineCharacter = (char)br.read()) != -1) {
-				jsonFileString = jsonFileString.append(lineCharacter);
+		FileInputStream fileInput = null;
+		try {			 		
+			fileInput = new FileInputStream(jsonFile);
+			int r;
+			while ((r = fileInput.read()) != -1) {
+			   char lineCharacter = (char) r;
+			   // append to StringBuilder
+			   jsonFileString.append(lineCharacter);
 			}
+			fileInput.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			if (br != null) {
+			if (fileInput != null) {
 				try {
-					br.close();
+					fileInput.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
