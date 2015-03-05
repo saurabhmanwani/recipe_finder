@@ -168,6 +168,13 @@ public class RecipeFinder {
 					
 					Date expiryDate = parseDate(fridgeItemDetails.get(2));
 					
+					
+//					if(!expiryDate.before(new Date()) && 
+//							(Unit)fridgeItemDetails.get(1) == (Unit.valueOf("")) &&
+//							(Integer)fridgeItemDetails.get(0) == 4) {
+//						
+//						
+//					}
 				}
 			}
 		}	
