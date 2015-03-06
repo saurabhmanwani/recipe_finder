@@ -19,16 +19,37 @@ import java.util.Scanner;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * @author saurabhmanwani
+ *
+ */
 public class RecipeFinder {
 
 	private static final String DATE_FORMAT = "dd/MM/yyyy";
 	
+	private static final String JSON_PARSE_ERROR = "Error occured while parsing recipe json file";
+	
+	private static final String CSV_PARSE_ERROR = "Error occured while parsing fridge items csv file";
+	
+	private static final String ENTER_JSON_FILE = "Enter recipe json file path";
+	
+	private static final String ENTER_CSV_FILE = "Enter fridge items csv file path";
+	
+	private static final String ALGO_ERROR = "Error occured while runing recipe finder algorithm";
+	
+	private static final String EXIT_RECIPE_FINDER = "Exiting recipe finder";
+	
+	private static final String RECIPE_FOUND = "Recipe found is : ";
+	
+	/** Execution starts from this method 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		
 		Scanner sc = new Scanner(System.in);
-		System.out.println("Enter recipe json file path");
+		System.out.println(ENTER_JSON_FILE);
 		String jsonFile = sc.next();
-		System.out.println("Enter fridge items csv file path");
+		System.out.println(ENTER_CSV_FILE);
 		String csvFile = sc.next();
 		
 		sc.close();
@@ -37,30 +58,39 @@ public class RecipeFinder {
 		recipeFinder.startRecipeFinderExecution(jsonFile, csvFile);		
 	}
 	
-	/*
-	 * 
-	 * 
-	 * 
+
+	/**
+	 * @param jsonFile
+	 * @param csvFile
 	 */
 	private void startRecipeFinderExecution(String jsonFile, String csvFile) {
 		
 		// parse json file
 	//	jsonFile = "/Users/saurabhmanwani/Desktop/recipeJson.txt";
 		String recipe = parseRecipeJSONFile(jsonFile);
-		JSONArray recipeArray =  new JSONArray(recipe);
 		
 		// parse csv file
 	//	csvFile = "/Users/saurabhmanwani/Desktop/fridgeItemsCsv.csv";
 		Map<String,List<Object>> fridgeItems = parseFridgeItemsCSVFile(csvFile);
 		
-		// run recipe finder
-		runRecipeFinder(recipeArray, fridgeItems);
+		if(recipe!=null && fridgeItems!=null) {
+			JSONArray recipeArray =  new JSONArray(recipe);
+			// run recipe finder
+			String recipeName = runRecipeFinder(recipeArray, fridgeItems);
+			if(recipeName !=null){
+				System.out.println(RECIPE_FOUND+ recipeName);
+			} else {
+				System.out.println(EXIT_RECIPE_FINDER);
+			}
+		} else{
+			System.out.println(EXIT_RECIPE_FINDER);
+		}
 	}
 	
-	/*
-	 * 
-	 * 
-	 * 
+
+	/** This method parses json recipe file
+	 * @param jsonFile
+	 * @return File as a String
 	 */
 	private String parseRecipeJSONFile(String jsonFile) {
 
@@ -75,10 +105,10 @@ public class RecipeFinder {
 			   jsonFileString.append(lineCharacter);
 			}
 			fileInput.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			return jsonFileString.toString();
+		} catch (Exception e) {
+			System.out.println(JSON_PARSE_ERROR);
+			return null;
 		} finally {
 			if (fileInput != null) {
 				try {
@@ -87,14 +117,13 @@ public class RecipeFinder {
 					e.printStackTrace();
 				}
 			}
-		}
-		return jsonFileString.toString();
+		}		
 	}
 	
-	/*
-	 * 
-	 * 
-	 * 
+
+	/** This method parses fridge items csv file
+	 * @param csvFile
+	 * @return Fridge items HashMap
 	 */
 	private Map<String, List<Object>> parseFridgeItemsCSVFile(String csvFile){
 	
@@ -112,10 +141,10 @@ public class RecipeFinder {
 				// populate fridge items
 				poplutateFridgeItems(fridgeItems, csvLine);
 			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			return fridgeItems;
+		} catch (Exception e) {
+			System.out.println(CSV_PARSE_ERROR);
+			return null;
 		} finally {
 			if (br != null) {
 				try {
@@ -125,13 +154,12 @@ public class RecipeFinder {
 				}
 			}
 		}
-		return fridgeItems;
 	}
 	
-	/*
-	 * 
-	 * 
-	 * 
+
+	/** This method populates the values of fridge items in data structure
+	 * @param fridgeItems
+	 * @param csvLine
 	 */
 	private void poplutateFridgeItems(Map<String,List<Object>> fridgeItems, String[] csvLine){
 		
@@ -142,13 +170,14 @@ public class RecipeFinder {
 		fridgeItems.put(csvLine[0], csvLineVals);
 	}
 	
-	/*
-	 * 
-	 * 
-	 * 
+
+	/** This method runs the algorithm for recipe finder
+	 * @param recipeArray
+	 * @param fridgeItems
+	 * @return Recipe String
 	 */
-	private void runRecipeFinder(JSONArray recipeArray, Map<String,List<Object>> fridgeItems) {
-		
+	private String runRecipeFinder(JSONArray recipeArray, Map<String,List<Object>> fridgeItems) {
+		try {
 		String recipeFound = "Order Takeout";
 		
 		for(int recipeCount=0;recipeCount<recipeArray.length();recipeCount++){
@@ -169,22 +198,26 @@ public class RecipeFinder {
 					Date expiryDate = parseDate(fridgeItemDetails.get(2));
 					
 					
-//					if(!expiryDate.before(new Date()) && 
-//							(Unit)fridgeItemDetails.get(1) == (Unit.valueOf("")) &&
-//							(Integer)fridgeItemDetails.get(0) == 4) {
-//						
-//						
-//					}
+					if(!expiryDate.before(new Date()) && 
+							(Unit)fridgeItemDetails.get(1) == (Unit.valueOf("")) &&
+							(Integer)fridgeItemDetails.get(0) == 4) {
+						
+						
+					}
 				}
 			}
 		}	
-		System.out.println("Recipe found is : "+recipeFound);
+		return recipeFound;
+		} catch(Exception e) {
+			System.out.println(ALGO_ERROR);
+			return null;
+		}
 	}
 	
-	/*
-	 * 
-	 * 
-	 * 
+
+	/** This is a utility mehotd for date parsing
+	 * @param dateString
+	 * @return Date
 	 */
 	private Date parseDate(Object dateString) {
 		
