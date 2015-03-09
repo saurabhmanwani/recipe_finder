@@ -1,0 +1,40 @@
+package com.pactera.recipefinder;
+
+import org.json.JSONObject;
+
+/**
+ * Java class for holding Recipe ingredient data
+ * @author saurabhmanwani
+ *
+ */
+public class RecipeIngredient {
+	
+	private String itemName;
+	private int amount;
+	private Unit unit;
+	
+	public RecipeIngredient(JSONObject ingredientObj) {
+		this.itemName = ingredientObj.getString("item");
+		this.amount = ingredientObj.getInt("amount");
+		this.unit = Unit.valueOf(ingredientObj.getString("unit"));
+	}
+	public String getItemName() {
+		return itemName;
+	}
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
+	}
+	public int getAmount() {
+		return amount;
+	}
+	public void setAmount(int amount) {
+		this.amount = amount;
+	}
+	public Unit getUnit() {
+		return unit;
+	}
+	public void setUnit(Unit unit) {
+		this.unit = unit;
+	}
+	
+}
