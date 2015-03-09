@@ -1,0 +1,180 @@
+package com.pactera.recipefinder;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+/**
+ * This class contains methods for the parsing of data and finding the recipe.
+ * @author saurabhmanwani
+ *
+ */
+public class RecipeFinderController {
+	
+	private static final String JSON_PARSE_ERROR = "Error occured while parsing recipe json file";
+	
+	private static final String CSV_PARSE_ERROR = "Error occured while parsing fridge items csv file";
+	
+	private static final String ALGO_ERROR = "Error occured while runing recipe finder algorithm";
+	
+	/** This method parses json recipe file
+	 * @param jsonFile
+	 * @return File as a String
+	 */
+	public List<RecipeData> parseRecipeJSONFile(String jsonFile) {
+		List<RecipeData> recipeDataList = null;
+		StringBuilder jsonFileString = new StringBuilder();
+		FileInputStream fileInput = null;
+		try {			 		
+			fileInput = new FileInputStream(jsonFile);
+			int r;
+			while ((r = fileInput.read()) != -1) {
+			   char lineCharacter = (char) r;
+			   // append to StringBuilder
+			   jsonFileString.append(lineCharacter);
+			}
+			fileInput.close();
+			
+			//get the JSON String value
+			String jsonFileStr = jsonFileString.toString();
+			
+			//convert the json string to java objects
+			recipeDataList = getRecipeDataFromJSONString(jsonFileStr);
+			System.out.println("The length of recipe data is" + recipeDataList.size() + " and the name is" 
+					+ recipeDataList.get(1).getRecipeItemNameList().get(1));
+		} catch (Exception e) {
+			System.out.println(JSON_PARSE_ERROR);
+			return null;
+		} finally {
+			if (fileInput != null) {
+				try {
+					fileInput.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return recipeDataList;
+	}
+	
+	/**
+	 * This method converts JSON string to Java objects
+	 * @param recipeDataJSONString
+	 * @return
+	 */
+	private List<RecipeData> getRecipeDataFromJSONString(String recipeDataJSONString) {
+		List<RecipeData> recipeDataList = new ArrayList<RecipeData>();
+		RecipeData recipeData = null;
+        if (null != recipeDataJSONString) {
+        	JSONArray recipeDataJSONArr = new JSONArray(recipeDataJSONString);
+        	for (int i = 0; i<recipeDataJSONArr.length(); i++) {
+        		JSONObject recipeDataObj =  (JSONObject) recipeDataJSONArr.get(i);
+        		recipeData = new RecipeData(recipeDataObj);
+        		recipeDataList.add(recipeData);
+        	}
+        }
+        return recipeDataList;
+	}
+	
+
+	/** This method parses fridge items csv file
+	 * @param csvFile
+	 * @return Fridge items HashMap
+	 */
+	public Map<String, FridgeItem> parseFridgeItemsCSVFile(String csvFile) {
+		Map<String, FridgeItem> fridgeItemMap = new HashMap<String, FridgeItem>();
+		FridgeItem fridgeItem = null;
+		BufferedReader br = null;
+		String line = "";
+		String splitBy = ",";
+		try {			 
+			br = new BufferedReader(new FileReader(csvFile));
+			while ((line = br.readLine()) != null) {
+				// use comma as separator
+				String[] csvLine = line.split(splitBy);
+				fridgeItem = new FridgeItem(csvLine);
+				fridgeItemMap.put(fridgeItem.getName(), fridgeItem);
+			}
+			return fridgeItemMap;
+		} catch (Exception e) {
+			System.out.println(CSV_PARSE_ERROR);
+			return null;
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+
+	/** This method runs the algorithm for recipe finder
+	 * @param recipeArray
+	 * @param fridgeItems
+	 * @return Recipe String
+	 */
+	public String runRecipeFinder(List<RecipeData> recipeDataList, Map<String, FridgeItem> fridgeItemMap) {
+		String recipeFound = "Order Takeout";
+		String ingredientItemName = null;
+		boolean igredientItemNotAvailable = false;
+		FridgeItem fridgeItem = null;
+		Date fridgeItemUseByDate = null;
+		Date recipeLevelDate = null;
+
+
+		try {
+			for (RecipeData recipeData : recipeDataList) {
+				igredientItemNotAvailable = false;
+				for (RecipeIngredient ingredient : recipeData.getRecipeIngredients()) {
+					ingredientItemName = ingredient.getItemName();
+					
+					//If the ingredient item is not available in fridge this recipe can't be cooked
+					if (!fridgeItemMap.keySet().contains(ingredientItemName)) {
+						igredientItemNotAvailable = true;
+						break;
+					}
+					fridgeItem = fridgeItemMap.get(ingredientItemName);
+					
+					/*If the fridgeItem is passed its use by date OR amount of ingredient is not available in fridge
+					  recipe can't be cooked */
+					if (fridgeItem.getUseByDate().before(new Date()) || ingredient.getAmount() > fridgeItem.getAmount()) {
+						igredientItemNotAvailable = true;
+						break;
+					}
+					
+					//get the closest use by date value for the recipe 
+					if (fridgeItemUseByDate == null || fridgeItem.getUseByDate().before(fridgeItemUseByDate)) {
+						fridgeItemUseByDate = fridgeItem.getUseByDate();
+					}
+				}
+				if (igredientItemNotAvailable) {
+					continue;
+				}
+				
+				//check the recipe level date for the final response
+				if (null == recipeLevelDate || fridgeItemUseByDate.before(recipeLevelDate)) {
+					recipeLevelDate = fridgeItemUseByDate;
+					recipeFound = recipeData.getRecipeName();
+				}
+			}
+			return recipeFound;
+		} catch(Exception e) {
+			System.out.println(ALGO_ERROR);
+			return null;
+		}
+	}
+
+
+}
