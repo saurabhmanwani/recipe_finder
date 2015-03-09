@@ -1,10 +1,10 @@
 package com.pactera.recipefinder;
 
 public enum Unit {
-	    OF(""),
-	    GRAMS("grams"),
-	    ML("ml"),
-	    SLICES("slices");
+	    of(""),
+	    grams("grams"),
+	    ml("ml"),
+	    slices("slices");
 	    
 	    private final String unitOfMeasure;
 
@@ -12,3 +12,4 @@ public enum Unit {
 	        this.unitOfMeasure = unitOfMeasure;
 	    }
 }
+
