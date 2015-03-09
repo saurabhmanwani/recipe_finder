@@ -1,0 +1,56 @@
+package com.pactera.recipefinder;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+/**
+ * Java class for holding Recipe Data
+ * @author saurabhmanwani
+ *
+ */
+public class RecipeData {
+	
+	private String recipeName;
+	private List<String> recipeItemNameList;
+	private List<RecipeIngredient> recipeIngredients;
+	
+	public RecipeData(JSONObject recipeData) {
+		this.recipeName = recipeData.getString("name");
+		JSONArray ingredientsArr = (JSONArray) recipeData.get("ingredients");
+		
+		for (int i = 0 ; i < ingredientsArr.length() ; i++) {
+			JSONObject ingredient = (JSONObject) ingredientsArr.get(i);
+			this.getRecipeIngredients().add(new RecipeIngredient(ingredient));
+			this.getRecipeItemNameList().add(ingredient.getString("item"));
+		}
+	}
+	public String getRecipeName() {
+		return recipeName;
+	}
+	public void setRecipeName(String recipeName) {
+		this.recipeName = recipeName;
+	}
+	public List<String> getRecipeItemNameList() {
+		if (null == this.recipeItemNameList) {
+			this.recipeItemNameList = new ArrayList<String>();
+		}
+		return recipeItemNameList;
+	}
+	public void setRecipeItemNameList(List<String> recipeItemName) {
+		this.recipeItemNameList = recipeItemName;
+	}
+	public List<RecipeIngredient> getRecipeIngredients() {
+		if (null == this.recipeIngredients) {
+			this.recipeIngredients = new ArrayList<RecipeIngredient>();
+		}
+		return recipeIngredients;
+	}
+	public void setRecipeIngredients(List<RecipeIngredient> recipeIngredients) {
+		this.recipeIngredients = recipeIngredients;
+	}
+	
+
+}
