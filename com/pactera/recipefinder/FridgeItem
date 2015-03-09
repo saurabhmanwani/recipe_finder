@@ -1,0 +1,53 @@
+package com.pactera.recipefinder;
+
+import java.util.Date;
+
+/**
+ * Java class for holding FridgeItem Data
+ * @author saurabhmanwani
+ *
+ */
+public class FridgeItem {
+	
+	private String name;
+	private int amount;
+	private Unit unit;
+	private Date useByDate;
+	
+	public FridgeItem() {
+	}
+	
+	public FridgeItem(String[] fridgeItemArr) {
+		this.name = fridgeItemArr[0];
+		this.amount = Integer.valueOf(fridgeItemArr[1]);
+		this.unit = Unit.valueOf(fridgeItemArr[2]);
+		this.useByDate = RecipeUtils.parseDate(fridgeItemArr[3]);
+		
+	}
+	
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public int getAmount() {
+		return amount;
+	}
+	public void setAmount(int amount) {
+		this.amount = amount;
+	}
+	public Unit getUnit() {
+		return unit;
+	}
+	public void setUnit(Unit unit) {
+		this.unit = unit;
+	}
+	public Date getUseByDate() {
+		return useByDate;
+	}
+	public void setUseByDate(Date useByDate) {
+		this.useByDate = useByDate;
+	}
+
+}
