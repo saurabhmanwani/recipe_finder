@@ -1,0 +1,93 @@
+package com.pactera.test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Test;
+
+import com.pactera.recipefinder.FridgeItem;
+import com.pactera.recipefinder.RecipeData;
+import com.pactera.recipefinder.RecipeFinderController;
+import com.pactera.recipefinder.RecipeIngredient;
+import com.pactera.recipefinder.RecipeUtils;
+import com.pactera.recipefinder.Unit;
+import static org.junit.Assert.*;
+
+
+public class RecipeFinderControllerTest {
+	
+	@Test
+	public void testRunRecipeFinder_ValidValues() {
+		List<RecipeData> recipeDataList = getValidRecipeData("cheese", 5, Unit.slices);
+		Map<String, FridgeItem> fridgeItemMap = getValidFridgeItemData("cheese", 10, Unit.slices, "26/12/2015");
+		RecipeFinderController controller = new RecipeFinderController();
+		String response = controller.runRecipeFinder(recipeDataList, fridgeItemMap);
+		assertEquals("cheese toast", response);	
+	}
+	
+	@Test
+	public void testRunRecipeFinder_OrderTakeOut_LessAmount() {
+		List<RecipeData> recipeDataList = getValidRecipeData("cheese", 15, Unit.slices);
+		Map<String, FridgeItem> fridgeItemMap = getValidFridgeItemData("cheese", 10, Unit.slices, "26/12/2015");
+		RecipeFinderController controller = new RecipeFinderController();
+		String response = controller.runRecipeFinder(recipeDataList, fridgeItemMap);
+		assertEquals("Order Takeout", response);	
+	}
+	
+	@Test
+	public void testRunRecipeFinder_OrderTakeOut_UseByDateBeforeNow() {
+		List<RecipeData> recipeDataList = getValidRecipeData("cheese", 5, Unit.slices);
+		Map<String, FridgeItem> fridgeItemMap = getValidFridgeItemData("cheese", 10, Unit.slices, "26/12/2013");
+		RecipeFinderController controller = new RecipeFinderController();
+		String response = controller.runRecipeFinder(recipeDataList, fridgeItemMap);
+		assertEquals("Order Takeout", response);	
+	}
+	
+	@Test
+	public void testRunRecipeFinder_OrderTakeOut_IngredientNotAvailable() {
+		List<RecipeData> recipeDataList = getValidRecipeData("cheese", 5, Unit.slices);
+		Map<String, FridgeItem> fridgeItemMap = getValidFridgeItemData("bread", 10, Unit.slices, "26/12/2015");
+		RecipeFinderController controller = new RecipeFinderController();
+		String response = controller.runRecipeFinder(recipeDataList, fridgeItemMap);
+		assertEquals("Order Takeout", response);	
+	}
+	
+	private List<RecipeData> getValidRecipeData(String ingredientItemName, int amount, Unit unit) {
+		List<RecipeData> recipeDataList = new ArrayList<RecipeData>();
+		RecipeIngredient ingredient = getRecipeIngredient(ingredientItemName, amount, unit);
+		RecipeData data = new RecipeData();
+		data.getRecipeIngredients().add(ingredient);
+		data.getRecipeItemNameList().add(ingredient.getItemName());
+		data.setRecipeName("cheese toast");
+		recipeDataList.add(data);
+		return recipeDataList;
+		
+	}
+
+	private Map<String, FridgeItem> getValidFridgeItemData(String itemName, int amount, Unit unit, String useByDate) {
+		Map<String, FridgeItem> fridgeItemMap = new HashMap<String, FridgeItem>();
+		FridgeItem item = getFridgeItem(itemName, amount, unit, useByDate);
+		fridgeItemMap.put(item.getName(), item);
+		return fridgeItemMap;
+	}
+	
+	private RecipeIngredient getRecipeIngredient(String itemName, int amount, Unit unit) {
+		RecipeIngredient ingredient = new RecipeIngredient();
+		ingredient.setItemName(itemName);
+		ingredient.setAmount(amount);
+		ingredient.setUnit(unit);
+		return ingredient;
+	}
+	
+	private FridgeItem getFridgeItem(String name, int amount, Unit unit, String useByDate) {
+		FridgeItem item = new FridgeItem();
+		item.setAmount(amount);
+		item.setName(name);
+		item.setUnit(unit);
+		item.setUseByDate(RecipeUtils.parseDate(useByDate));
+		return item;
+		
+	}
+}
