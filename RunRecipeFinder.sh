@@ -1,6 +1,6 @@
 #!/bin/bash
   
-LIB=./jars/
+IB=./jars/
  
 CP=.:${LIB}json-20140107.jar:${LIB}junit-4.11.jar
  
